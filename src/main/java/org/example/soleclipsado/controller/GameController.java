@@ -42,7 +42,7 @@ public class GameController {
         }
 
         // Validar las letras (ñ y acentos)
-        if (!palabra.matches("[a-zA-ZáéíóúÁÉÍÓÚñÑ+]")){
+        if (!palabra.matches("[a-zA-ZáéíóúÁÉÍÓÚñÑ]+")){
             lblMensaje.setText("Solo se permiten Letras");
             return;
         }

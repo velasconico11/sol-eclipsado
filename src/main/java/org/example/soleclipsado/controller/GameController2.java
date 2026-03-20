@@ -32,27 +32,28 @@ public class GameController2 {
             TextField tf = new TextField();
             tf.setPrefSize(45, 45);
             tf.setText("");
-            tf.textProperty().addListener((obs, old, nuevo) -> {
-                if (nuevo.length() > 1) {
-                    tf.setText(nuevo.substring(0, 1));
-                }
+            tf.setEditable(false); //Los cuadros solo mostraran las letras correctas
 
-                if (nuevo.length() == 1) {
-                    int index = contenedorLetras.getChildren().indexOf(tf);
-                    if (index + 1 < contenedorLetras.getChildren().size()) {
-                        contenedorLetras.getChildren().get(index + 1).requestFocus();
-                    }
-                }
-            });
+            if (i == 0) {
+                tf.setEditable(true);
+            }
 
             // Cuando escribo, valido la letra
             tf.textProperty().addListener((obs, viejo, nuevo) -> {
+                if (nuevo.isEmpty()) return;
+
                 if (!nuevo.matches("[a-zA-Záéíóúñ]")) {
                     tf.clear();
                     return;
                 }
+
                 verificarLetra(tf, nuevo.toLowerCase().charAt(0));
-            });
+
+                if (tf == camposLetras[0]) {
+                    tf.clear();
+                    tf.requestFocus();
+            }
+        });;
 
             camposLetras[i] = tf;
             contenedorLetras.getChildren().add(tf);
@@ -64,27 +65,29 @@ public class GameController2 {
         boolean correcta = false;
         for (int i = 0; i < palabraSecreta.length(); i++) {
             if (normalizarLetra(palabraSecreta.charAt(i)) == normalizarLetra(letra)) {
-                camposLetras[i].setText(String.valueOf(letra));
+                camposLetras[i].setText(String.valueOf(palabraSecreta.charAt(i)));
                 correcta = true;
             }
-        }
-
-        if (correcta) {
-            tf.setDisable(true); // opcional: bloquea el campo ya usado
-        } else {
-            errores++;
-            actualizarSol();
-            System.out.println("Error #" + errores);
         }
 
         if (!correcta) {
             errores++;
             actualizarSol();
             System.out.println("Error #"+errores);
+
+            if (errores >= 5) {
+                System.out.println("¡Perdiste!");
+                desactivarGame();
+                return;
+            }
         }
         checkWin();
     }
-
+    private void desactivarGame() {
+        for (TextField tf : camposLetras) {
+            tf.setEditable(false);
+        }
+    }
     // Para que 'a' = 'á' y 'e' = 'é' como pide el profe
     private char normalizarLetra(char c) {
         if (c=='á' || c=='à' || c=='â') return 'a';

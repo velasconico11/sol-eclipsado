@@ -55,18 +55,17 @@ public class GameController {
 
         // Se pasa a la segunda escena (pantalla)
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/Game.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/org/example/soleclipsado/Game.fxml"));
             Parent root = loader.load();
 
             GameController2 gameController2 = loader.getController();
             gameController2.initGame(palabraSecreta);
 
+            Stage stage = (Stage) txtPalabra.getScene().getWindow();
             stage.setScene(new Scene(root));
             stage.show();
         } catch (Exception e) {
             lblMensaje.setText("Error al iniciar el juego");
-
-
         }
     }
 }

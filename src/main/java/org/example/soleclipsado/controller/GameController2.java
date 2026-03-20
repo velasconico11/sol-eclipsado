@@ -33,7 +33,16 @@ public class GameController2 {
             tf.setPrefSize(45, 45);
             tf.setText("");
             tf.textProperty().addListener((obs, old, nuevo) -> {
-                if (nuevo.length() > 1) tf.setText(nuevo.substring(0, 1));
+                if (nuevo.length() > 1) {
+                    tf.setText(nuevo.substring(0, 1));
+                }
+
+                if (nuevo.length() == 1) {
+                    int index = contenedorLetras.getChildren().indexOf(tf);
+                    if (index + 1 < contenedorLetras.getChildren().size()) {
+                        contenedorLetras.getChildren().get(index + 1).requestFocus();
+                    }
+                }
             });
 
             // Cuando escribo, valido la letra
@@ -56,11 +65,18 @@ public class GameController2 {
         for (int i = 0; i < palabraSecreta.length(); i++) {
             if (normalizarLetra(palabraSecreta.charAt(i)) == normalizarLetra(letra)) {
                 camposLetras[i].setText(String.valueOf(letra));
-                tf.clear();
                 correcta = true;
-                break;
             }
         }
+
+        if (correcta) {
+            tf.setDisable(true); // opcional: bloquea el campo ya usado
+        } else {
+            errores++;
+            actualizarSol();
+            System.out.println("Error #" + errores);
+        }
+
         if (!correcta) {
             errores++;
             actualizarSol();
@@ -82,7 +98,7 @@ public class GameController2 {
     // Cambia la imagen del sol según errores (20% por error)
     private void actualizarSol() {
         int nivel = Math.min(errores, 5);
-        String ruta = "/sun_" + nivel + ".png";
+        String ruta = "/org/example/soleclipsado/sun_" + nivel + ".png";
         try {
             imgSol.setImage(new Image(getClass().getResourceAsStream(ruta)));
         } catch (Exception e) {

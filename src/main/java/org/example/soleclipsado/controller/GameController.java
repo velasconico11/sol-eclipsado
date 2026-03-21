@@ -62,7 +62,7 @@ public class GameController {
             gameController2.initGame(palabraSecreta);
 
             Stage stage = (Stage) txtPalabra.getScene().getWindow();
-            stage.setScene(new Scene(root));
+            stage.setScene(new Scene(root, 600, 600));
             stage.show();
         } catch (Exception e) {
             lblMensaje.setText("Error al iniciar el juego");

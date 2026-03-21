@@ -49,7 +49,8 @@ public class GameController2 {
 
                 verificarLetra(tf, nuevo.toLowerCase().charAt(0));
 
-                if (tf == camposLetras[0]) {
+                // Acá se corrige para que solo borre la letra si es incorrecta (No corrigio :C)
+                if (!palabraSecreta.contains(nuevo.toLowerCase())) {
                     tf.clear();
                     tf.requestFocus();
             }

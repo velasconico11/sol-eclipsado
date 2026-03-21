@@ -11,22 +11,40 @@ import javafx.scene.control.Button;
 
 public class GameController2 {
 
-    @FXML private HBox contenedorLetras;
-    @FXML private ImageView imgSol;
-    @FXML private Label lblTitulo;
-    @FXML private TextField txtInput;
-    @FXML private Button btnAyuda;
+    @FXML
+    private HBox contenedorLetras;
+    @FXML
+    private ImageView imgSol;
+    @FXML
+    private Label lblTitulo;
+    @FXML
+    private TextField txtInput;
+    @FXML
+    private Button btnAyuda;
+    @FXML private Label lblMensaje; //Para que no solo diga si gane o perdi en la consola si no tambien en pantalla
     @FXML
     private void handleAyuda() {
-        System.out.println("Botón ayuda presionado");
+        if (ayudasUsadas >= 3) {
+            System.out.println("No quedan mas ayudas");
+            return;
+        }
+
+        revelarLetraRandom();
+        ayudasUsadas++;
+
+        if (ayudasUsadas >= 3) {
+            btnAyuda.setDisable(true);
+        }
     }
 
     private String palabraSecreta;
     private TextField[] camposLetras;
     private int errores = 0;
+    private int ayudasUsadas = 0; //Agrego variable que me faltaba
 
     // Recibe palabra de la primera pantalla
     public void initGame(String palabra) {
+        lblMensaje.setText("INICIO");
         palabraSecreta = palabra.toLowerCase();
         camposLetras = new TextField[palabraSecreta.length()];
 
@@ -45,6 +63,7 @@ public class GameController2 {
             if (!String.valueOf(letra).matches("[a-záéíóúñ]")) {
                 txtInput.clear();
                 return;
+
             }
 
             verificarLetra(letra);
@@ -70,6 +89,7 @@ public class GameController2 {
             contenedorLetras.getChildren().add(tf); // mostrar en pantalla
         }
     }
+
     // Busca si la letra que puse está en la palabra
     private void verificarLetra(char letra) {
         boolean correcta = false;
@@ -81,13 +101,17 @@ public class GameController2 {
             }
         }
 
+        if (correcta) {
+            lblMensaje.setText("Letra correcta");
+        }
+
         if (!correcta) {
             errores++;
             actualizarSol();
-            System.out.println("Error #" + errores);
+            lblMensaje.setText("Letra incorrecta (" + errores + ")");
 
             if (errores >= 5) {
-                System.out.println("¡Perdiste!");
+                lblMensaje.setText("¡Perdiste!");
                 desactivarGame();
                 return;
             }
@@ -101,13 +125,14 @@ public class GameController2 {
             tf.setEditable(false);
         }
     }
+
     // Para que 'a' = 'á' y 'e' = 'é' como pide el profe
     private char normalizarLetra(char c) {
-        if (c=='á' || c=='à' || c=='â') return 'a';
-        if (c=='é' || c=='è' || c=='ê') return 'e';
-        if (c=='í' || c=='ì' || c=='î') return 'i';
-        if (c=='ó' || c=='ò' || c=='ô') return 'o';
-        if (c=='ú' || c=='ù' || c=='û') return 'u';
+        if (c == 'á' || c == 'à' || c == 'â') return 'a';
+        if (c == 'é' || c == 'è' || c == 'ê') return 'e';
+        if (c == 'í' || c == 'ì' || c == 'î') return 'i';
+        if (c == 'ó' || c == 'ò' || c == 'ô') return 'o';
+        if (c == 'ú' || c == 'ù' || c == 'û') return 'u';
         return Character.toLowerCase(c);
     }
 
@@ -126,6 +151,32 @@ public class GameController2 {
         for (TextField tf : camposLetras) {
             if (tf.getText().isEmpty()) return;
         }
-        System.out.println("¡GANASTE!");
+        lblMensaje.setText("¡GANASTE!");
+    }
+
+    private void revelarLetraRandom() {
+        // contar espacios vacíos
+        int vacios = 0;
+        for (TextField tf : camposLetras) {
+            if (tf.getText().isEmpty()) vacios++;
+        }
+
+        if (vacios == 0) return;
+
+        // elegir uno al azar
+        int objetivo = (int) (Math.random() * vacios);
+
+        int contador = 0;
+        for (int i = 0; i < palabraSecreta.length(); i++) {
+            if (camposLetras[i].getText().isEmpty()) {
+
+                if (contador == objetivo) {
+                    camposLetras[i].setText(String.valueOf(palabraSecreta.charAt(i)));
+                    return;
+                }
+
+                contador++;
+            }
+        }
     }
 }

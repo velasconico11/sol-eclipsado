@@ -31,5 +31,6 @@
       </Label>
       <HBox fx:id="contenedorLetras" alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="10.0" />
       <Button fx:id="btnAyuda" mnemonicParsing="false" onAction="#handleAyuda" text="Ayuda" />
+      <Label fx:id="lblMensaje" textFill="#ff0404" />
    </children>
 </VBox>

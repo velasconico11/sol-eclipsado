@@ -1,59 +1,35 @@
 package org.example.soleclipsado.controller;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.scene.control.Button;
-
+import org.example.soleclipsado.model.GameModel;
 
 public class GameController2 {
 
-    @FXML
-    private HBox contenedorLetras;
-    @FXML
-    private ImageView imgSol;
-    @FXML
-    private Label lblTitulo;
-    @FXML
-    private TextField txtInput;
-    @FXML
-    private Button btnAyuda;
-    @FXML private Label lblMensaje; //Para que no solo diga si gane o perdi en la consola si no tambien en pantalla
-    @FXML
-    private void handleAyuda() {
-        if (ayudasUsadas >= 3) {
-            lblMensaje.setText("No quedan más ayudas");
-            return;
-        }
+    @FXML private HBox contenedorLetras;
+    @FXML private ImageView imgSol;
+    @FXML private TextField txtInput;
+    @FXML private Label lblMensaje;
+    @FXML private Button btnAyuda;
 
-        revelarLetraRandom();
-        ayudasUsadas++;
-
-        lblMensaje.setText("Ayuda usada (" + ayudasUsadas + "/3)");
-
-        if (ayudasUsadas >= 3) {
-            btnAyuda.setDisable(true);
-        }
-    }
-
-    private String palabraSecreta;
+    private GameModel gameModel;
     private TextField[] camposLetras;
-    private int errores = 0;
-    private int ayudasUsadas = 0; //Agrego variable que me faltaba
 
-    // Recibe palabra de la primera pantalla
-    public void initGame(String palabra) {
+    public void initGame(GameModel model) {
+        this.gameModel = model;
         lblMensaje.setText("INICIO");
-        palabraSecreta = palabra.toLowerCase();
-        camposLetras = new TextField[palabraSecreta.length()];
+
+        String palabra = gameModel.getPalabraSecreta();
+        camposLetras = new TextField[palabra.length()];
 
         crearCamposLetras();
         actualizarSol();
 
-        //Activa el input invisible
         txtInput.setVisible(true);
         txtInput.requestFocus();
 
@@ -61,122 +37,93 @@ public class GameController2 {
             if (nuevo.isEmpty()) return;
 
             char letra = nuevo.toLowerCase().charAt(0);
-
             if (!String.valueOf(letra).matches("[a-záéíóúñ]")) {
                 txtInput.clear();
                 return;
-
             }
 
-            verificarLetra(letra);
+            if (gameModel.letraCorrecta(letra)) {
+                actualizarCampos();
+                lblMensaje.setText("Letra correcta");
+            } else {
+                actualizarSol();
+                lblMensaje.setText("Letra incorrecta (" + gameModel.getErrores() + ")");
+            }
 
             txtInput.clear();
+
+            if (gameModel.gano()) {
+                lblMensaje.setText("¡GANASTE!");
+                desactivarGame();
+            } else if (gameModel.getErrores() >= 5) {
+                lblMensaje.setText("¡PERDISTE!");
+                desactivarGame();
+            }
         });
 
         contenedorLetras.setOnMouseClicked(e -> txtInput.requestFocus());
-
     }
 
-    // Crea un TextField por cada letra de la palabra secreta
     private void crearCamposLetras() {
         contenedorLetras.getChildren().clear();
-
-        for (int i = 0; i < palabraSecreta.length(); i++) {
+        String palabra = gameModel.getPalabraSecreta();
+        for (int i = 0; i < palabra.length(); i++) {
             TextField tf = new TextField();
             tf.setPrefSize(45, 45);
-            tf.setText("");
-            tf.setEditable(false); //Los cuadros solo mostraran las letras correcta
-
-            camposLetras[i] = tf; // guardar en el arreglo
-            contenedorLetras.getChildren().add(tf); // mostrar en pantalla
+            tf.setEditable(false);
+            camposLetras[i] = tf;
+            contenedorLetras.getChildren().add(tf);
         }
     }
 
-    // Busca si la letra que puse está en la palabra
-    private void verificarLetra(char letra) {
-        boolean correcta = false;
-
-        for (int i = 0; i < palabraSecreta.length(); i++) {
-            if (normalizarLetra(palabraSecreta.charAt(i)) == normalizarLetra(letra)) {
-                camposLetras[i].setText(String.valueOf(palabraSecreta.charAt(i)));
-                correcta = true;
+    private void actualizarCampos() {
+        String palabra = gameModel.getPalabraSecreta();
+        for (int i = 0; i < palabra.length(); i++) {
+            if (gameModel.getLetrasAdivinadas().contains(palabra.charAt(i))) {
+                camposLetras[i].setText(String.valueOf(palabra.charAt(i)));
             }
         }
-
-        if (correcta) {
-            lblMensaje.setText("Letra correcta");
-        }
-
-        if (!correcta) {
-            errores++;
-            actualizarSol();
-            lblMensaje.setText("Letra incorrecta (" + errores + ")");
-
-            if (errores >= 5) {
-                lblMensaje.setText("¡Perdiste!");
-                desactivarGame();
-                return;
-            }
-        }
-
-        checkWin();
     }
 
     private void desactivarGame() {
-        for (TextField tf : camposLetras) {
-            tf.setEditable(false);
-        }
+        for (TextField tf : camposLetras) tf.setEditable(false);
     }
 
-    // Para que 'a' = 'á' y 'e' = 'é' como pide el profe
-    private char normalizarLetra(char c) {
-        if (c == 'á' || c == 'à' || c == 'â') return 'a';
-        if (c == 'é' || c == 'è' || c == 'ê') return 'e';
-        if (c == 'í' || c == 'ì' || c == 'î') return 'i';
-        if (c == 'ó' || c == 'ò' || c == 'ô') return 'o';
-        if (c == 'ú' || c == 'ù' || c == 'û') return 'u';
-        return Character.toLowerCase(c);
-    }
-
-    // Cambia la imagen del sol según errores (20% por error)
     private void actualizarSol() {
-        int nivel = Math.min(errores, 5);
+        int nivel = Math.min(gameModel.getErrores(), 5);
         String ruta = "/org/example/soleclipsado/sun_" + nivel + ".png";
-        try {
-            imgSol.setImage(new Image(getClass().getResourceAsStream(ruta)));
-        } catch (Exception e) {
-            System.out.println("Imagen no encontrada: " + ruta);
-        }
+        try { imgSol.setImage(new Image(getClass().getResourceAsStream(ruta))); }
+        catch (Exception e) { System.out.println("Imagen no encontrada: " + ruta); }
     }
 
-    private void checkWin() {
-        for (TextField tf : camposLetras) {
-            if (tf.getText().isEmpty()) return;
+    @FXML
+    private void handleAyuda() {
+        if (gameModel.getAyudasUsadas() >= 3) {
+            lblMensaje.setText("No quedan más ayudas");
+            return;
         }
-        lblMensaje.setText("¡GANASTE!");
+
+        revelarLetraRandom();
+        gameModel.usarAyuda();
+        lblMensaje.setText("Ayuda usada (" + gameModel.getAyudasUsadas() + "/3)");
+
+        if (gameModel.getAyudasUsadas() >= 3) btnAyuda.setDisable(true);
     }
 
     private void revelarLetraRandom() {
-        // contar espacios vacíos
         int vacios = 0;
-        for (TextField tf : camposLetras) {
-            if (tf.getText().isEmpty()) vacios++;
-        }
-
+        for (TextField tf : camposLetras) if (tf.getText().isEmpty()) vacios++;
         if (vacios == 0) return;
 
-        // elegir uno al azar
-        int objetivo = (int) (Math.random() * vacios);
-
+        int objetivo = (int)(Math.random() * vacios);
         int contador = 0;
-        for (int i = 0; i < palabraSecreta.length(); i++) {
+        for (int i = 0; i < camposLetras.length; i++) {
             if (camposLetras[i].getText().isEmpty()) {
-
                 if (contador == objetivo) {
-                    camposLetras[i].setText(String.valueOf(palabraSecreta.charAt(i)));
+                    camposLetras[i].setText(String.valueOf(gameModel.getPalabraSecreta().charAt(i)));
+                    gameModel.getLetrasAdivinadas().add(gameModel.getPalabraSecreta().charAt(i));
                     return;
                 }
-
                 contador++;
             }
         }

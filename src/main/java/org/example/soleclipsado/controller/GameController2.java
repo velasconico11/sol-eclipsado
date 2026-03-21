@@ -12,6 +12,7 @@ public class GameController2 {
     @FXML private HBox contenedorLetras;
     @FXML private ImageView imgSol;
     @FXML private Label lblTitulo;
+    @FXML private TextField txtInput;
 
     private String palabraSecreta;
     private TextField[] camposLetras;
@@ -21,49 +22,51 @@ public class GameController2 {
     public void initGame(String palabra) {
         palabraSecreta = palabra.toLowerCase();
         camposLetras = new TextField[palabraSecreta.length()];
+
         crearCamposLetras();
         actualizarSol();
+
+        //Activa el input invisible
+        txtInput.setVisible(true);
+        txtInput.requestFocus();
+
+        txtInput.textProperty().addListener((obs, viejo, nuevo) -> {
+            if (nuevo.isEmpty()) return;
+
+            char letra = nuevo.toLowerCase().charAt(0);
+
+            if (!String.valueOf(letra).matches("[a-záéíóúñ]")) {
+                txtInput.clear();
+                return;
+            }
+
+            verificarLetra(letra);
+
+            txtInput.clear();
+        });
+
+        contenedorLetras.setOnMouseClicked(e -> txtInput.requestFocus());
+
     }
 
     // Crea un TextField por cada letra de la palabra secreta
     private void crearCamposLetras() {
         contenedorLetras.getChildren().clear();
+
         for (int i = 0; i < palabraSecreta.length(); i++) {
             TextField tf = new TextField();
             tf.setPrefSize(45, 45);
             tf.setText("");
-            tf.setEditable(false); //Los cuadros solo mostraran las letras correctas
+            tf.setEditable(false); //Los cuadros solo mostraran las letras correcta
 
-            if (i == 0) {
-                tf.setEditable(true);
-            }
-
-            // Cuando escribo, valido la letra
-            tf.textProperty().addListener((obs, viejo, nuevo) -> {
-                if (nuevo.isEmpty()) return;
-
-                if (!nuevo.matches("[a-zA-Záéíóúñ]")) {
-                    tf.clear();
-                    return;
-                }
-
-                verificarLetra(tf, nuevo.toLowerCase().charAt(0));
-
-                // Acá se corrige para que solo borre la letra si es incorrecta (No corrigio :C)
-                if (!palabraSecreta.contains(nuevo.toLowerCase())) {
-                    tf.clear();
-                    tf.requestFocus();
-            }
-        });;
-
-            camposLetras[i] = tf;
-            contenedorLetras.getChildren().add(tf);
+            camposLetras[i] = tf; // guardar en el arreglo
+            contenedorLetras.getChildren().add(tf); // mostrar en pantalla
         }
     }
-
     // Busca si la letra que puse está en la palabra
-    private void verificarLetra(TextField tf, char letra) {
+    private void verificarLetra(char letra) {
         boolean correcta = false;
+
         for (int i = 0; i < palabraSecreta.length(); i++) {
             if (normalizarLetra(palabraSecreta.charAt(i)) == normalizarLetra(letra)) {
                 camposLetras[i].setText(String.valueOf(palabraSecreta.charAt(i)));
@@ -74,7 +77,7 @@ public class GameController2 {
         if (!correcta) {
             errores++;
             actualizarSol();
-            System.out.println("Error #"+errores);
+            System.out.println("Error #" + errores);
 
             if (errores >= 5) {
                 System.out.println("¡Perdiste!");
@@ -82,8 +85,10 @@ public class GameController2 {
                 return;
             }
         }
+
         checkWin();
     }
+
     private void desactivarGame() {
         for (TextField tf : camposLetras) {
             tf.setEditable(false);

@@ -6,6 +6,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.control.Button;
+
 
 public class GameController2 {
 
@@ -13,6 +15,11 @@ public class GameController2 {
     @FXML private ImageView imgSol;
     @FXML private Label lblTitulo;
     @FXML private TextField txtInput;
+    @FXML private Button btnAyuda;
+    @FXML
+    private void handleAyuda() {
+        System.out.println("Botón ayuda presionado");
+    }
 
     private String palabraSecreta;
     private TextField[] camposLetras;
